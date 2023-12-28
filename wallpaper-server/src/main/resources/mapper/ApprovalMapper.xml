@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pumpkin.disease.mapper.ApprovalMapper">
+    <resultMap type="com.pumpkin.disease.entity.wallpaper.ApprovalHistory" id="ApprovalMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="moduleType" column="module_type" jdbcType="INTEGER"/>
+        <result property="moduleId" column="module_id" jdbcType="INTEGER"/>
+        <result property="submitterId" column="submitter_id" jdbcType="VARCHAR"/>
+        <result property="approvalUserId" column="approval_user_id" jdbcType="VARCHAR"/>
+        <result property="approvalStatus" column="approval_status" jdbcType="TINYINT"/>
+        <result property="approvalTime" column="approval_time" jdbcType="TIMESTAMP"/>
+        <result property="remarks" column="remarks" jdbcType="VARCHAR"/>
+        <result property="isDeleted" column="is_deleted" jdbcType="INTEGER"/>
+        <result property="gmtCreate" column="gmt_create" jdbcType="TIMESTAMP"/>
+        <result property="gmtUpdate" column="gmt_update" jdbcType="TIMESTAMP"/>
+        <result column="submitterName" property="submitterName"/>
+        <association property="businessEntity" javaType="com.pumpkin.disease.entity.wallpaper.Image">
+            <result column="description" property="description"/>
+            <result column="file_size" property="fileSize"/>
+            <result column="image_name" property="imageName"/>
+            <result column="image_size" property="imageSize"/>
+            <result column="image_url" property="imageUrl"/>
+            <result column="typeName" property="typeName"/>
+        </association>
+    </resultMap>
+
+    <select id="queryApprovalList" resultMap="ApprovalMap">
+        select a.*,
+               wi.image_name,
+               wi.image_size,
+               wi.image_url,
+               wi.description,
+               wi.file_size,
+               (select t.type_name
+                from wallpaper_type t
+                where t.id = wi.type_id)      as typeName,
+               (select ua.username
+                from user_auth ua
+                where ua.id = a.submitter_id) as submitterName
+        from approval_history a
+                 left join wallpaper_image wi on a.module_id = wi.id
+        where a.is_deleted = 0
+          and wi.is_deleted = 0
+    </select>
+
+    <update id="updateStatus">
+        update ${tableName}
+        set ${statusField} = #{status}
+        where ${idField} = #{id};
+    </update>
+
+    <update id="updateApprovalTime">
+        update approval_history
+        set approval_time =#{time}
+        where id = #{id};
+    </update>
+</mapper>

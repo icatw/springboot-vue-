@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pumpkin.disease.mapper.TypeMapper">
+    <resultMap type="com.pumpkin.disease.entity.wallpaper.Type" id="TypeMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="typeName" column="type_name" jdbcType="VARCHAR"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="status" column="status" jdbcType="TINYINT"/>
+        <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+        <result property="imageNum" column="image_num"/>
+    </resultMap>
+
+    <!--查询指定行数据-->
+    <select id="selectTypeList" resultMap="TypeMap">
+        select
+        id, type_name, create_time, update_time, status
+        from wallpaper_type
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="typeName != null and typeName != ''">
+                and type_name = #{typeName}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="listBasicType" resultMap="TypeMap">
+        select id, type_name, create_time, update_time, status, is_deleted
+        from wallpaper_type
+        where is_deleted = 0
+          and status = 1
+    </select>
+
+    <select id="queryTypeList" resultMap="TypeMap">
+        select wt.id,
+        wt.type_name,
+        wt.create_time,
+        wt.update_time,
+        wt.status,
+        wt.description,
+        wt.is_deleted,
+        (select count(1) from wallpaper_image i where i.type_id=wt.id and i.is_deleted=0) as image_num
+        from wallpaper_type wt
+        where wt.is_deleted = 0
+        <if test="request.typeName != null and request.typeName != ''">
+            and INSTR(wt.type_name,#{request.typeName}) > 0
+        </if>
+        order by wt.create_time desc
+    </select>
+</mapper>

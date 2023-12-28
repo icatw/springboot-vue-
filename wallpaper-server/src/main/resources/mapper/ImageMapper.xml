@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pumpkin.disease.mapper.ImageMapper">
+    <resultMap type="com.pumpkin.disease.entity.wallpaper.Image" id="ImageMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="imageName" column="image_name" jdbcType="VARCHAR"/>
+        <result property="imageUrl" column="image_url" jdbcType="VARCHAR"/>
+        <result property="imageSize" column="image_size" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="typeId" column="type_id" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="TINYINT"/>
+        <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+        <result property="typeName" column="type_name" jdbcType="VARCHAR"/>
+        <result property="downloads" column="downloads" jdbcType="BIGINT"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="fileSize" column="file_size" jdbcType="VARCHAR"/>
+        <result column="approval_id" property="approvalId"/>
+    </resultMap>
+
+    <!--查询指定行数据-->
+    <select id="selectImageList" resultMap="ImageMap">
+        select
+        id, image_name, image_url, image_size, create_time, update_time, type_id
+        from wallpaper_image
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="imageName != null and imageName != ''">
+                and image_name = #{imageName}
+            </if>
+            <if test="imageUrl != null and imageUrl != ''">
+                and image_url = #{imageUrl}
+            </if>
+            <if test="imageSize != null and imageSize != ''">
+                and image_size = #{imageSize}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="typeId != null">
+                and type_id = #{typeId}
+            </if>
+        </where>
+    </select>
+    <select id="queryPageVoList" resultType="com.pumpkin.disease.entity.wallpaper.ImageVo">
+        SELECT
+        i.id,
+        i.image_name,
+        i.image_url,
+        i.image_size
+        <if test="request.currentUserId!=null and request.currentUserId!=''">
+            , wc.status
+        </if>
+        FROM
+        wallpaper_image AS i
+        LEFT JOIN wallpaper_type wt ON i.type_id = wt.id
+        <if test="request.currentUserId!=null and request.currentUserId!=''">
+            LEFT JOIN wallpaper_collect wc ON i.id = wc.image_id AND wc.user_id = #{request.currentUserId}
+        </if>
+        WHERE
+        i.is_deleted = 0
+        AND wt.is_deleted = 0
+        AND wt.status = 1
+        <if test="request.type !=null and request.type!=0">
+            AND i.type_id = #{request.type}
+        </if>
+        <if test="request.status !=null">
+            AND i.status = #{request.status}
+        </if>
+        <if test="request.imageName!=null and request.imageName!=''">
+            AND i.image_name like concat('%',#{request.imageName},'%')
+        </if>
+        ORDER BY
+        <if test="request.currentUserId!=null and request.currentUserId!=''">
+            wc.status desc,
+        </if>
+        CASE
+        WHEN #{request.sort} = 1 THEN i.downloads
+        WHEN #{request.sort} = 2 THEN i.create_time
+        ELSE i.create_time
+        END DESC, i.update_time DESC
+    </select>
+
+    <select id="queryImageList" resultMap="ImageMap">
+        select wi.id,
+        wi.image_name,
+        wi.image_url,
+        wi.image_size,
+        wi.file_size,
+        wi.create_time,
+        wi.is_deleted,
+        wi.update_time,
+        wi.type_id,
+        wi.description,
+        wi.downloads,
+        wt.type_name,
+        wi.status,
+        wi.approval_id
+        from wallpaper_image wi
+        left join wallpaper_type wt on wi.type_id = wt.id
+        left join approval_history ah on wi.approval_id = ah.id
+        where wt.is_deleted = 0
+        and wt.status = 1
+        <if test="request.imageName != null and request.imageName != ''">
+            and INSTR(wi.image_name,#{request.imageName}) > 0
+        </if>
+        <if test="request.typeId != null and request.typeId != ''">
+            and wi.type_id=#{request.typeId}
+        </if>
+        <if test="request.currentUserId != null and request.currentUserId != ''">
+            and wi.upload_by=#{request.currentUserId}
+        </if>
+        order by wi.status desc,wi.downloads desc,wi.create_time desc
+    </select>
+
+    <update id="recoveryById">
+        update wallpaper_image
+        set is_deleted = 0
+        where id = #{id};
+    </update>
+</mapper>

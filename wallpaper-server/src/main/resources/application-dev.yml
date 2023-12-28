@@ -1,0 +1,98 @@
+server:
+  port: 9888
+
+spring:
+  application:
+    name: Disease-Information-Server
+  # Database Configuration
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://ip/icatw-wallpaper?serverTimezone=Asia/Shanghai
+    username: root
+    password: 123
+    hikari:
+      minimum-idle: 5
+      # 空闲连接存活最大时间，默认600000（10分钟）
+      idle-timeout: 180000
+      # 连接池最大连接数，默认是10
+      maximum-pool-size: 10
+      # 此属性控制从池返回的连接的默认自动提交行为,默认值：true
+      auto-commit: true
+      # 连接池名称
+      pool-name: MyHikariCP
+      # 此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认1800000即30分钟
+      max-lifetime: 1800000
+      # 数据库连接超时时间,默认30秒，即30000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+  redis:
+    host: ip
+    port: 6379
+    database: 2
+    password: 123
+  # Date Configuration
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd hh:mm:ss
+  #file size Configuration
+  servlet:
+    multipart:
+      max-request-size: 100MB
+      max-file-size: 100MB
+      file-size-threshold: 20MB
+  web:
+    resources:
+      static-locations: classpath:/static/
+  # thymeleaf
+  thymeleaf:
+    cache: false
+    prefix: classpath:/static/
+    suffix: .html
+  # Mail Configuration
+  mail:
+    host: smtp.qq.com
+    protocol: smtp
+    default-encoding: UTF-8
+    test-connection: true
+    username: 111
+    password: 111
+    properties:
+      mail:
+        smtp:
+          auth: true
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
+          starttls:
+            enable: true
+            required: true
+
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/*.xml
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+application:
+  swagger:
+    isEnable: true
+  jwt:
+    secret: icatw@!#@#@!
+    expire_time: 604800
+    request_header: Authorization
+aliyun:
+  sms:
+    access-key-id: 11
+    access-key-secret: 11
+    sign-name: 11
+    template-code: 11
+qq:
+  app-id: 11
+  check-token-url: https://graph.qq.com/oauth2.0/me?access_token={access_token}
+  user-info-url: https://graph.qq.com/user/get_user_info?openid={openid}&access_token={access_token}&oauth_consumer_key={oauth_consumer_key}
